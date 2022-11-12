@@ -1,0 +1,7 @@
+/client/target/
+/client/client.iml
+/client/.mvn/
+/atm/.mvn/
+/.idea/
+/atm/target/
+/atm/atm.iml

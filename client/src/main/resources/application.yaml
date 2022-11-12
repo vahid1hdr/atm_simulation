@@ -1,0 +1,52 @@
+server:
+  port: 8082
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+resilience4j:
+  circuitbreaker:
+    instances:
+      bank-auth:
+        failure-rate-threshold: 100
+        minimum-number-of-calls: 3
+        sliding-window-size: 3
+        sliding-window-type: count_based
+        slow-call-duration-threshold: 20000
+        slow-call-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+      bank-transaction:
+        failure-rate-threshold: 100
+        minimum-number-of-calls: 2
+        sliding-window-size: 2
+        sliding-window-type: count_based
+        slow-call-duration-threshold: 15000
+        slow-call-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+logging:
+  level:
+    com:
+      egs:
+        eval:
+          bankclient:
+            remote:
+              '*': DEBUG
+bank:
+  auth:
+    base:
+      url: http://localhost:8081/public/v1/auth
+    getTypes:
+      url: /types
+  transaction:
+    balance:
+      url: /balance
+    base:
+      url: http://localhost:8081/api/v1/transaction
+    deposit:
+      url: /deposit
+    rollback:
+      url: /rollback/{transactionId}
+    withdraw:
+      predefines:
+        url: /withdraw/predefines
+      url: /withdraw

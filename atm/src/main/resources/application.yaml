@@ -1,0 +1,23 @@
+server:
+  port: 8081
+spring:
+  data:
+    mongodb:
+      database: bank
+      host: localhost
+      port: 27017
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+jwt:
+  secret: $EcR@Key4JWT$EcR@Key4JWT$EcR@Key4JWT$EcR@Key4JWT
+  validitySeconds: 600
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
