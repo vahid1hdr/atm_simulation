@@ -2,24 +2,32 @@ package com.egs.eval.atm.dal.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
-import java.util.Set;
+import javax.persistence.*;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Document("user")
+@Entity
+@Table(name = "user_tbl")
 public class User extends BaseEntity {
+
+    @Column(name = "pin")
     private String pin;
+
+    @Column(name = "fingerprint")
     private String fingerprint;
-    private Set<String> cardSet;
-    private Session activeSession;
+
+//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//    private List<Card> cardSet;
+//
+//    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+//    private Session activeSession;
+
+    @Column(name = "today_failed_login_attempts")
     private Integer todayFailedLoginAttempts;
 
-    @Data
-    private static class Session {
-        private String token;
-        private LocalDateTime createdDate;
-    }
+    @Column(name = "day_of_fail_login")
+    private Long dayOfFailLogin;
+
 }

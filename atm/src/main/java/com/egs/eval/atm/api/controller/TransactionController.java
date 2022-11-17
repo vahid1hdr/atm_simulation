@@ -44,7 +44,7 @@ public class TransactionController {
 
     @GetMapping("/balance")
     public BalanceResponse getBalance() throws InterruptedException {
-        Thread.sleep(16000L);
+//        Thread.sleep(16000L);
         return facade.getBalance(request.getHeader(AUTHORIZATION_HEADER));
     }
 }

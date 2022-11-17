@@ -1,12 +1,8 @@
 package com.egs.eval.atm.dal.repository;
 
 import com.egs.eval.atm.dal.entity.User;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
-import java.util.Set;
+public interface UserRepository extends JpaRepository<User, String> {
 
-public interface UserRepository extends MongoRepository<User, String> {
-
-    Optional<User> findByCardSet(Set<String> cardNumber);
 }

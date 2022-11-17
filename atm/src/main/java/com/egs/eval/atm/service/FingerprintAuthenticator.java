@@ -10,6 +10,8 @@ public class FingerprintAuthenticator implements Authenticator {
 
     private final UserService userService;
     private final TokenGranter tokenGranter;
+    //    @Value("${max.allowed.failed.attempts}")
+    private int maxAllowedFailedAttempts = 3;
 
     public FingerprintAuthenticator(UserService userService, TokenGranter tokenGranter) {
         this.userService = userService;
@@ -19,8 +21,8 @@ public class FingerprintAuthenticator implements Authenticator {
     @Override
     public String authenticate(String cardNumber, String fingerprint) {
         UserQueryModel queryModel = UserQueryModel.builder().card(cardNumber).fingerprint(fingerprint).build();
-        return userService.getUserId(queryModel)
-                .map(tokenGranter::generateToken)
+        return userService.getUserByCardNumber(queryModel)
+                .map(user -> tokenGranter.generateToken(user.getId().toString()))
                 .orElseThrow(() -> doFailureProcess(queryModel.getCard()));
     }
 
@@ -29,7 +31,7 @@ public class FingerprintAuthenticator implements Authenticator {
         return AuthenticationMechanism.FINGERPRINT.equals(authenticationMechanism);
     }
 
-    private  RuntimeException doFailureProcess(String cardNo) {
+    private RuntimeException doFailureProcess(String cardNo) {
         int attempts = userService.addTodayFailedLoginAttempts(cardNo);
         return doFailureWithMessageSupply(
                 () -> new FailureModel(attempts, "Authentication via fingerprint failed. number of today attempts: " + attempts)

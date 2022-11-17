@@ -1,0 +1,40 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/postgres
+    username: myusername
+    password: mypassword
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      pool-name: hikari-pool-atm
+  jpa:
+    hibernate:
+      naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc.lob.non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+jwt:
+  secret: $EcR@Key4JWT$EcR@Key4JWT$EcR@Key4JWT$EcR@Key4JWT
+  validitySeconds: 600
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+
+max:
+  allowed:
+    failed:
+      attempts:3
