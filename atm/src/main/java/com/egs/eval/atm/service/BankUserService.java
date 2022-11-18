@@ -16,13 +16,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class BankUserService implements UserService {
 
-    private final UserRepository userRepository;
+    private final UserRepository repository;
     private final CardService cardService;
     private final PasswordEncoder passwordEncoder;
     private static final int MAX_ALLOWED_FAILED_ATTEMPTS = 3;
 
     @Override
-    public User getUserByCardNumber(UserQueryModel queryModel) {
+    public User getUserByQueryModel(UserQueryModel queryModel) {
         User user = findUser(queryModel.getCard());
         validateTodayFailedLoginAttempts(user);
         credentialMatches(queryModel, user);
@@ -33,8 +33,7 @@ public class BankUserService implements UserService {
         return cardService.getUserByCardNumber(cardNumber);
     }
 
-    @Override
-    public void validateTodayFailedLoginAttempts(User user) {
+    private void validateTodayFailedLoginAttempts(User user) {
         if (Objects.nonNull(user.getTodayFailedLoginAttempts())) {
             long dayNumber = getDayNumber();
             if (dayNumber == user.getDayOfFailLogin()) {
@@ -52,7 +51,7 @@ public class BankUserService implements UserService {
 
         user.setTodayFailedLoginAttempts(increaseAttempts(user.getTodayFailedLoginAttempts()));
         user.setDayOfFailLogin(dayNumber);
-        userRepository.save(user);
+        repository.save(user);
     }
 
     private long getDayNumber() {
@@ -61,9 +60,9 @@ public class BankUserService implements UserService {
 
     private void resetUserTodayAttempts(User user) {
         if (Objects.nonNull(user.getTodayFailedLoginAttempts())) {
-            user.setTodayFailedLoginAttempts(0);
-            user.setDayOfFailLogin(getDayNumber());
-            userRepository.save(user);
+            user.setTodayFailedLoginAttempts(null);
+            user.setDayOfFailLogin(null);
+            repository.save(user);
         }
     }
 

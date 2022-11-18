@@ -19,7 +19,7 @@ public class PinAuthenticator implements Authenticator {
     @Override
     public String authenticate(String cardNumber, String pin) {
         UserQueryModel queryModel = UserQueryModel.builder().card(cardNumber).pin(pin).build();
-        User user = userService.getUserByCardNumber(queryModel);
+        User user = userService.getUserByQueryModel(queryModel);
         return tokenGranter.generateToken(user.getId().toString());
     }
 

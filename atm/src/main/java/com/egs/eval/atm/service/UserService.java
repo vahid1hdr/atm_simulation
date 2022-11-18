@@ -5,7 +5,5 @@ import com.egs.eval.atm.service.model.UserQueryModel;
 
 public interface UserService {
 
-    User getUserByCardNumber(UserQueryModel queryModel);
-
-    void validateTodayFailedLoginAttempts(User user);
+    User getUserByQueryModel(UserQueryModel queryModel);
 }

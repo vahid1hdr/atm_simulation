@@ -19,7 +19,7 @@ public class FingerprintAuthenticator implements Authenticator {
     @Override
     public String authenticate(String cardNumber, String fingerprint) {
         UserQueryModel queryModel = UserQueryModel.builder().card(cardNumber).fingerprint(fingerprint).build();
-        User user = userService.getUserByCardNumber(queryModel);
+        User user = userService.getUserByQueryModel(queryModel);
         return tokenGranter.generateToken(user.getId().toString());
     }
 
