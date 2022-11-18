@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CardServiceImpl implements CardService {
+public class BankCardService implements CardService {
     private final CardRepository repository;
 
     @Override
