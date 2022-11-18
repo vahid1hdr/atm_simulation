@@ -33,8 +33,3 @@ logging:
           mongodb:
             core:
               MongoTemplate: DEBUG
-
-max:
-  allowed:
-    failed:
-      attempts:3

@@ -1,8 +1,6 @@
 package com.egs.eval.atm.service;
 
-import com.egs.eval.atm.dal.entity.Card;
 import com.egs.eval.atm.dal.entity.User;
-import com.egs.eval.atm.dal.repository.CardRepository;
 import com.egs.eval.atm.dal.repository.UserRepository;
 import com.egs.eval.atm.service.exception.NotAuthenticatedException;
 import com.egs.eval.atm.service.exception.NumberOfAttemptsExceededException;
@@ -13,68 +11,48 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BankUserService implements UserService {
 
     private final UserRepository userRepository;
-    private final CardRepository cardRepository;
+    private final CardService cardService;
     private final PasswordEncoder passwordEncoder;
-    //    @Value("${max.allowed.failed.attempts}")
-    private int maxAllowedFailedAttempts=3;
+    private static final int MAX_ALLOWED_FAILED_ATTEMPTS = 3;
 
     @Override
-    public Optional<User> getUserByCardNumber(UserQueryModel queryModel) {
-        Optional<User> userOptional = findUser(queryModel);
-        userOptional.ifPresent(user -> validateTodayFailedLoginAttempts(user,queryModel.getCard()));
-        userOptional = userOptional.filter(user -> credentialMatches(queryModel, user));
-        userOptional.ifPresent(this::resetUserTodayAttempts);
-        return userOptional;
-
+    public User getUserByCardNumber(UserQueryModel queryModel) {
+        User user = findUser(queryModel.getCard());
+        validateTodayFailedLoginAttempts(user);
+        credentialMatches(queryModel, user);
+        return user;
     }
 
-    private Optional<User> findUser(UserQueryModel queryModel) {
-        Optional<User> userOptional = cardRepository.findByCardNumber(queryModel.getCard()).map(Card::getUser);
-        return userOptional;
+    private User findUser(String cardNumber) {
+        return cardService.getUserByCardNumber(cardNumber);
     }
 
     @Override
-    public int addTodayFailedLoginAttempts(String cardNo) {
-        return cardRepository.findByCardNumber(cardNo)
-                .map(card -> increaseUserTodayAttempts(card.getUser()))
-                .orElseThrow(() -> new NotAuthenticatedException("cardNumber is not valid. cardNo: " + cardNo));
-    }
-
-    @Override
-    public void resetTodayFailedLoginAttempts(String cardNo) {
-         cardRepository.findByCardNumber(cardNo)
-                .ifPresent(card -> resetUserTodayAttempts(card.getUser()));
-    }
-
-    @Override
-    public void validateTodayFailedLoginAttempts(User user, String cardNumber) {
-        long dayNumber = getDayNumber();
-        if (user.getTodayFailedLoginAttempts() >0) {
-            if (user.getDayOfFailLogin()!=null && dayNumber == user.getDayOfFailLogin()) {
-                if (user.getTodayFailedLoginAttempts() > maxAllowedFailedAttempts) {
+    public void validateTodayFailedLoginAttempts(User user) {
+        if (Objects.nonNull(user.getTodayFailedLoginAttempts())) {
+            long dayNumber = getDayNumber();
+            if (dayNumber == user.getDayOfFailLogin()) {
+                if (user.getTodayFailedLoginAttempts() >= MAX_ALLOWED_FAILED_ATTEMPTS) {
                     throw new NumberOfAttemptsExceededException("You are locked.");
                 }
-            }
-            else{
+            } else {
                 resetUserTodayAttempts(user);
             }
         }
     }
 
-    private Integer increaseUserTodayAttempts(User user) {
+    private void increaseUserTodayAttempts(User user) {
         long dayNumber = getDayNumber();
 
         user.setTodayFailedLoginAttempts(increaseAttempts(user.getTodayFailedLoginAttempts()));
         user.setDayOfFailLogin(dayNumber);
         userRepository.save(user);
-        return user.getTodayFailedLoginAttempts();
     }
 
     private long getDayNumber() {
@@ -82,7 +60,7 @@ public class BankUserService implements UserService {
     }
 
     private void resetUserTodayAttempts(User user) {
-        if (user.getTodayFailedLoginAttempts()==null || user.getTodayFailedLoginAttempts()>0) {
+        if (Objects.nonNull(user.getTodayFailedLoginAttempts())) {
             user.setTodayFailedLoginAttempts(0);
             user.setDayOfFailLogin(getDayNumber());
             userRepository.save(user);
@@ -93,8 +71,13 @@ public class BankUserService implements UserService {
         return Objects.isNull(todayFailedLoginAttempts) ? 1 : todayFailedLoginAttempts + 1;
     }
 
-    private boolean credentialMatches(UserQueryModel queryModel, User user) {
-        return (Objects.nonNull(queryModel.getPin()) && passwordEncoder.matches(queryModel.getPin(), user.getPin())) ||
+    private void credentialMatches(UserQueryModel queryModel, User user) {
+        boolean matched = (Objects.nonNull(queryModel.getPin()) && passwordEncoder.matches(queryModel.getPin(), user.getPin())) ||
                 (Objects.nonNull(queryModel.getFingerprint()) && passwordEncoder.matches(queryModel.getFingerprint(), user.getFingerprint()));
+        if (!matched) {
+            increaseUserTodayAttempts(user);
+            throw new NotAuthenticatedException("Invalid Authentication.");
+        }
+        resetUserTodayAttempts(user);
     }
 }

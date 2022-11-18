@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class Card extends BaseEntity {
 
     @JoinColumn(name = "user_Id")
-    @ManyToOne
+    @OneToOne
     private User user;
 
     @Column(name = "card_number")
